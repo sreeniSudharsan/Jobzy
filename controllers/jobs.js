@@ -35,16 +35,20 @@ const getAllJobs = async (req, res) => {
   if(sort === 'z-a'){
     result = result.sort('-position')
   }
-)
+
+  const page = Number(req.query.page) || 1;
+  const limit = Number(req.query.limit) || 10;
+  const skip = (page-1)*limit
 
 
-
-
-  let result  = Job.find(queryObject)
-
+  result = result.skip(skip).limit(limit);
 
   const jobs = await result
-  res.status(StatusCodes.OK).json({ jobs, count: jobs.length })
+  
+  const totalJobs = await Job.countDocuments(queryObject)
+  const numOfPages = Math.ceil(totalJobs/limit)
+  
+  res.status(StatusCodes.OK).json({ jobs, numOfPages })
 }
 const getJob = async (req, res) => {
   const {

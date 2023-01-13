@@ -40,8 +40,7 @@ const getAllJobs = async (req, res) => {
   const limit = Number(req.query.limit) || 10;
   const skip = (page-1)*limit
 
-
-  result = result.skip(skip).limit(limit);
+  const result = result.skip(skip).limit(limit);
 
   const jobs = await result
   

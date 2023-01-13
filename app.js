@@ -19,14 +19,16 @@ const jobsRouter = require('./routes/jobs');
 const notFoundMiddleware = require('./middleware/not-found');
 const errorHandlerMiddleware = require('./middleware/error-handler');
 
+app.set('trust proxy', 1) //this is in the docs for deploying since proxy issues can come up
+
 app.use(express.static(path.resolve(__dirname, './client/build'))); //This uses the static files created using react
 app.use(express.json());
 app.use(helmet());
 app.use(xss());
 
-app.get('/', (req, res) => {
-  res.send('<h1>Jobster API 1.x</h1><a href="/api-docs">Documentation</a>');
-});
+// app.get('/', (req, res) => {
+//   res.send('<h1>Jobster API 1.x</h1><a href="/api-docs">Documentation</a>');
+// });
 
 // routes
 app.use('/api/v1/auth', authRouter);

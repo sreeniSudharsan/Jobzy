@@ -67,9 +67,9 @@ const getJob = async (req, res) => {
 }
 
 const createJob = async (req, res) => {
-  req.body.createdBy = req.user.userId
+  req.body.createdBy = req.user.userId //This is the start of making sure that the job is created by the user only and that no one else can see the job,
   const job = await Job.create(req.body)
-  res.status(StatusCodes.CREATED).json({ job })
+  res.status(StatusCodes.CREATED).json({ job }) 
 }
 
 const updateJob = async (req, res) => {

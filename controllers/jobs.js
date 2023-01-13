@@ -15,6 +15,7 @@ const getAllJobs = async (req, res) => {
     queryObject.position = {$regex:search, $options: 'i'}
   }
 
+
   if(status && status !== 'all'){
     queryObject.status = status
   }
@@ -22,6 +23,9 @@ const getAllJobs = async (req, res) => {
   if(jobType && jobType !== 'all'){
     queryObject.jobType = jobType
   }
+
+
+  let result = Job.find(queryObject);
 
   //chain Sort
 
@@ -113,27 +117,54 @@ const deleteJob = async (req, res) => {
   res.status(StatusCodes.OK).send()
 }
 
-const showStats = async(req, res) => {
+const showStats = async (req, res) => {
   let stats = await Job.aggregate([
-    {$match: {CreatedBY: mongoose.Types.ObjectId(req.user.userId)}}, //Requirement of Mongoose Id is the fact that User ID is a string, but we need a mongoose Object 
-    {$group: {_id: '$status', count: {$sum: 1} }},
+    { $match: { createdBy: mongoose.Types.ObjectId(req.user.userId) } },
+    { $group: { _id: '$status', count: { $sum: 1 } } },
   ]);
 
   stats = stats.reduce((acc, curr) => {
-    const { _id: title, count} = curr;
+    const { _id: title, count } = curr;
     acc[title] = count;
     return acc;
   }, {});
-  
-  //It is good practise to add default values to avoid bugs
+
   const defaultStats = {
     pending: stats.pending || 0,
     interview: stats.interview || 0,
-    declined: stats.declined || 0
-  }
-  res.status(StatusCodes.OK)
-  .json({defaultStats, monthlyApplications: []});
+    declined: stats.declined || 0,
+  };
+
+  let monthlyApplications = await Job.aggregate([
+    { $match: { createdBy: mongoose.Types.ObjectId(req.user.userId) } },
+    {
+      $group: {
+        _id: { year: { $year: '$createdAt' }, month: { $month: '$createdAt' } },
+        count: { $sum: 1 },
+      },
+    },
+    { $sort: { '_id.year': -1, '_id.month': -1 } },
+    { $limit: 6 },
+  ]);
+
+  monthlyApplications = monthlyApplications
+    .map((item) => {
+      const {
+        _id: { year, month },
+        count,
+      } = item;
+      const date = moment()
+        .month(month - 1)
+        .year(year)
+        .format('MMM Y');
+      return { date, count };
+    })
+    .reverse();
+
+  res.status(StatusCodes.OK).json({ defaultStats, monthlyApplications });
 };
+
+
 
 
 module.exports = {

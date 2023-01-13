@@ -8,7 +8,7 @@
 # testing
 /coverage
 
-# production
+# production - When not in production, the build folder is added to the gitignore. Which must be changed if you want to take it to production
 
 
 # misc
